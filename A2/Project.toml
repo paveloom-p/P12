@@ -1,0 +1,10 @@
+[deps]
+GRUtils = "0337cf30-a0fd-11e9-31db-a79914c9d7ac"
+Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
+
+[compat]
+GRUtils = "~0.6.1"
+Roots = "~1.0.9"
+UnPack = "~1.0.2"
+julia = "1.6"

@@ -3,7 +3,6 @@ module Internal
 
 export Problem, Options, solve
 
-using LinearAlgebra
 using OffsetArrays
 using UnPack
 
@@ -18,7 +17,7 @@ Problem(
     A::Float64,
     b::Float64,
     β::Float64,
-    B::Float64
+    B::Float64,
 )
 ```
 
@@ -27,9 +26,9 @@ A linear boundary value problem.
 Expects the problem in the form:
 
 ```
-y''(x) + p(x) * y'(x) + q(x) * y(x) = f(x)
-y'(a) = α * y(a) + A
-y'(b) = β * y(b) + B
+y''(x) + p(x) y'(x) + q(x) y(x) = f(x)
+y'(a) = α y(a) + A
+y'(b) = β y(b) + B
 ```
 
 """
