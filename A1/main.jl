@@ -1,7 +1,7 @@
 include("src/A1.jl")
 using .A1
 
-solve(
+y = solve(
     Problem(
         (x) -> 2 / √(x + 1),
         (x) -> -2 * √(x^2 + 1),

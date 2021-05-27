@@ -5,7 +5,7 @@ Solve the problem `P` using options `O`.
 
 See `Problem` and `Options` for more info about how to state a problem and change the default options.
 """
-function solve(P::Problem, O::Options=DefaultOptions)
+function solve(P::Problem, O::Options=DefaultOptions)::Vector
 
     # Unpack the data structures
     @unpack p, q, f, a, α, A, b, β, B = P
@@ -41,5 +41,7 @@ function solve(P::Problem, O::Options=DefaultOptions)
     for i in n:-1:1
         y[i] = (f[i] - du[i] * y[i+1]) / d[i]
     end
+
+    return y
 
 end
