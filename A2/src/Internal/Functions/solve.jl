@@ -1,5 +1,5 @@
 """
-`solve(P::Problem, O::Options=DefaultOptions)::Union{Vector{Float64}, Vector{Float64}}`
+`solve(P::Problem, O::Options=DefaultOptions)::Tuple{Vector, Vector}`
 
 Solve the problem `P` using options `O`.
 
