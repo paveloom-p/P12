@@ -17,16 +17,24 @@ y, z = solve(
         (x, z) -> - z / (z^2 + 1),
         a,
         b,
-        -10,
+        -5,
         -4,
         4,
     ),
     Options(n),
 )
 
+open("result", "w") do io
+    println(io, "y z")
+    for i in 1:n+1
+        println(io, y[i], " ", z[i])
+    end
+end
+
 h = (b - a) / n
 x = [a + i * h for i in 0:n]
 
 plot(x, y)
 plot(x, z, hold=true)
+legend("y", "z")
 savefig("figures/result.pdf")
