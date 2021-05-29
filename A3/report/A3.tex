@@ -1,0 +1,322 @@
+\input{../../shared/preambula}
+\hypersetup{pdftitle={Вычислительный практикум: отчет по третьему заданию}}
+
+\usepackage{graphicx}
+
+\begin{document}
+
+\pagenumbering{Alph}
+\thispdfpagelabel{Title}
+\begin{titlepage}
+
+    \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+    \center
+
+    \ \\[6.5cm]
+
+    \textsc{\Large Вычислительный практикум}\\[0.5cm]
+
+    \HRule\\[0.4cm]
+
+    {\huge\bfseries Отчет по третьему заданию}\\[0.4cm]
+
+    \HRule\\[0.5cm]
+
+    \large
+    \textit{Автор:} Павел \textsc{Соболев}
+
+    \ \\[0.9cm]
+    \vfill\vfill\vfill
+
+    {\large\today}
+
+    \vfill
+
+\end{titlepage}
+\pagenumbering{arabic}
+
+\subsection*{Часть 1}
+\section*{Теория}
+\resetcounters{1}
+
+\vspace{18pt}
+
+Дана одна или несколько функций $ a_{ij} $, задающих элементы симметричной матрицы. Для этой матрицы необходимо найти
+
+\begin{itemize}
+    \setlength{\itemsep}{1pt}
+    \item наибольшее по модулю собственное число $ \lambda_{max} $ степенным методом;
+    \item наименьшее по модулю собственное число $ \lambda_{min} $ обратным степенным методом;
+    \item все собственные числа, используя классический метод Якоби.
+\end{itemize}
+
+\subsection{Степенной метод}
+
+Выбрав начальный вектор $ x_0 $, проводим итерации следующего вида
+
+\hs
+\begin{gather}
+     \tilde{x}_{n+1} = A x_n, \; x_{n+1} = \frac{\tilde{x}_{n+1}}{{\{\tilde{x}_{n+1}\}}_1}.
+\end{gather}
+
+В процессе $ {\{\tilde{x}_{n+1}\}}_1 \longrightarrow \lambda_{max} $.
+
+\subsection{Обратный степенной метод}
+
+Выбрав начальный вектор $ x_0 $, проводим итерации следующего вида
+
+\hs
+\begin{gather}
+     A \tilde{x}_{n+1} = x_n, \; x_{n+1} = \frac{\tilde{x}_{n+1}}{{\{\tilde{x}_{n+1}\}}_1}.
+\end{gather}
+
+Решая системы линейных уравнений, в процессе $ {\{\tilde{x}_{n+1}\}}_1 \longrightarrow \lambda_{min} $.
+
+\subsection{Классический метод Якоби}
+
+Пусть $ A $ -- симметричная матрица, а $ G = G(i, j, \theta) $ -- матрица вращения. Тогда матрица $ A' = G^\top A G $ симметрична и подобна матрице A. Вращение выражается как
+
+\hs
+\begin{gather}
+A'_{ii} = c^2 A_{ii} - 2 sc \, A_{ij} + s^2 A_{jj},
+\end{gather}
+
+\hsv{14}
+\begin{gather}
+A'_{jj} = s^2 A_{ii} + 2 sc \, A_{ij} + c^2 A_{jj},
+\end{gather}
+
+\hsv{14}
+\begin{gather}
+A'_{ij} = A'_{ji} = (c^2 - s^2) A_{ij} + sc \, (A_{ii} - A_{jj}),
+\end{gather}
+
+\hsv{14}
+\begin{gather}
+A'_{ik} = A'_{ki} = c \, A_{ik} - s \, A_{jk}, \; k \neq i, j,
+\end{gather}
+
+\hsv{14}
+\begin{gather}
+A'_{jk} = A'_{kj} = s \, A_{ik} + c \, A_{jk}, \; k \neq i, j,
+\end{gather}
+
+\hsv{14}
+\begin{gather}
+A'_{kl} = A_{kl}, \; k, l \neq i, j,
+\end{gather}
+
+где $ s = \sin \theta $ и $ c = \cos \theta $, причем можем выбрать $ \theta $ так, что $ A'_{ij} = 0 $:
+
+\hs
+\begin{gather}
+\tg(2 \theta) = \frac{2 A_{ij}}{A_{jj} - A_{ii}}.
+\end{gather}
+
+Если $ A_{jj} = A_{ii} $, то
+
+\hs
+\begin{gather}
+    \theta = \frac{\pi}{4}.
+\end{gather}
+
+Для оптимального эффекта $ A_{ij} $ выбирается как наибольший по модулю внедиагональный элемент. Вращения продолжаются до тех пор, пока матрица не приобретет диагональный вид.
+
+\newpage
+
+\subsection*{Часть 2}
+\section*{Реализация}
+\resetcounters{2}
+
+\vspace{18pt}
+
+Алгоритм реализован на языке программирования \href{https://julialang.org}{\footnotesize \texttt{Julia}} в виде локального модуля {\footnotesize \texttt{A3}} и расположен в GitHub репозитории \href{https://github.com/paveloom-p/P12}{\footnotesize \texttt{paveloom-p/P12}} в папке \href{https://github.com/paveloom-p/P12/tree/master/A3}{\footnotesize \texttt{A3}}. Для воспроизведения результатов следуй инструкциям в файле {\footnotesize \texttt{README.md}}. Далее приводятся только сниппеты кода.
+
+\subsection{Степенной метод}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Поиск наибольшего по модулю собственного числа
+]
+# Get the matrix
+A = Symmetric(Array{Float64}(undef, n, n))
+for i = 1:n, j = i:n
+    A.data[i,j] = aᵢⱼ(i, j)
+end
+
+# Get a vector of initial values
+x₀ = get_x₀(A)
+
+# Find the maximum modulo eigenvalue
+
+xₙ = copy(x₀)
+λₘₐₓ = 0
+λₚᵣₑᵥ = 1
+
+while abs(1 - λₘₐₓ / λₚᵣₑᵥ) > ϵₚ
+    λₚᵣₑᵥ = λₘₐₓ
+    x̃ₙ₊₁ = A * xₙ
+    λₘₐₓ = x̃ₙ₊₁[1]
+    xₙ = x̃ₙ₊₁ / λₘₐₓ
+end
+\end{lstlisting}
+\end{figure}
+
+Конструктор типа {\footnotesize \texttt{Symmetric}} позволяет получить вид на верхний или нижний треугольник симметричной матрицы и предоставляет доступ к соответствующим оптимизациям. Интерфейс, однако, ожидает передачу всей матрицы, хотя и необязательно полностью инициализированной. \par
+
+\vspace{\baselineskip}
+
+Функция {\footnotesize \texttt{get\_x₀}} реализует получение вектора-столбца начальных значений. По умолчанию это вектор из единиц.
+
+\subsection{Обратный степенной метод}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Поиск наименьшего по модулю собственного числа
+]
+# Find the minimum modulo eigenvalue
+
+xₙ = copy(x₀)
+λ⁻¹ₘᵢₙ = 0
+λ⁻¹ₚᵣₑᵥ = 1
+
+while abs(1 - λ⁻¹ₘᵢₙ / λ⁻¹ₚᵣₑᵥ) > ϵₚ
+    λ⁻¹ₚᵣₑᵥ = λ⁻¹ₘᵢₙ
+    x̃ₙ₊₁ = A \ xₙ
+    λ⁻¹ₘᵢₙ = x̃ₙ₊₁[1]
+    xₙ = x̃ₙ₊₁ / λ⁻¹ₘᵢₙ
+end
+\end{lstlisting}
+\end{figure}
+
+\subsection{Классический метод Якоби}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Поиск всех собственных чисел (часть 1)
+]
+# Use the Jacobi eigenvalue algorithm to find all eigenvalues
+λ = Vector{Float64}(undef, n)
+
+for _ in 1:iterₘₐₓ
+
+    aₘₐₓ = k = l = 0
+
+    for i in 1:n-1, j in i+1:n
+        if abs(A[i,j]) ≥ aₘₐₓ
+            aₘₐₓ = abs(A[i,j])
+            k = i; l = j
+        end
+    end
+
+    if aₘₐₓ < ϵⱼ
+        λ = Diagonal(A).diag
+        break
+    end
+
+    Δ = A[l,l] - A[k,k]
+
+    t = if abs(A[k,l]) < abs(Δ) * 1e-36
+        A[k,l] / Δ
+    else
+        ϕ = Δ / (2 * A[k,l])
+        if ϕ < 0
+            -1 / (abs(ϕ) + √(ϕ^2 + 1))
+        else
+            1 / (abs(ϕ) + √(ϕ^2 + 1))
+        end
+    end
+
+    <...>
+
+\end{lstlisting}
+\end{figure}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Поиск всех собственных чисел (часть 2)
+]
+    <...>
+
+    c = 1 / √(t^2 + 1)
+    s = t * c
+    τ = s / (1 + c)
+
+    aₜₑₘₚ = A[k,l]
+    A.data[k,l] = 0
+    A.data[k,k] -= t * aₜₑₘₚ
+    A.data[l,l] += t * aₜₑₘₚ
+
+    for i in 1:k-1
+        aₜₑₘₚ = A[i,k]
+        A.data[i,k] = aₜₑₘₚ - s * (A[i,l] + τ * aₜₑₘₚ)
+        A.data[i,l] += s * (aₜₑₘₚ - τ * A[i,l])
+    end
+
+    for i in k+1:l-1
+        aₜₑₘₚ = A[k,i]
+        A.data[k,i] = aₜₑₘₚ - s * (A[i,l] + τ * A[k,i])
+        A.data[i,l] += s * (aₜₑₘₚ - τ * A[i,l])
+    end
+
+    for i in l+1:n
+        aₜₑₘₚ = A[k,i]
+        A.data[k,i] = aₜₑₘₚ - s * (A[l,i] + τ * aₜₑₘₚ)
+        A.data[l,i] += s * (aₜₑₘₚ - τ * A[l,i])
+    end
+
+end
+\end{lstlisting}
+\end{figure}
+
+Изменение данных типа {\footnotesize \texttt{Symmetric}} в текущей версии требует доступа к полю {\footnotesize \texttt{data}}. Изменение одного элемента, однако, автоматически изменяет и симметричный ему элемент.
+
+\subsection{Пример}
+
+Симметричная матрица задана функцией
+
+\hs
+\begin{gather}
+    a_{ij} = \frac{(-1)^{i + j}}{\left| i - j \right| + 1}.
+\end{gather}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Определение и решение проблемы
+]
+include("src/A3.jl")
+using .A3
+
+λₘₐₓ, λₘᵢₙ, λ = solve(
+    Problem(
+        function(i, j)
+            return (-1)^(i+j) / (abs(i-j) + 1)
+        end,
+    ),
+)
+\end{lstlisting}
+\end{figure}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Результат
+]
+λₘₐₓ = 3.478950198080321
+λₘᵢₙ = 0.3915295599251142
+
+λ:
+1.653468417452173
+0.48334088187775437
+0.6592071525661884
+0.4078747606964994
+1.1122936734459035
+0.43707220669552194
+0.39152955992511285
+0.8237636815142848
+3.478950198080321
+0.5524994677462397
+\end{lstlisting}
+\end{figure}
+
+\end{document}

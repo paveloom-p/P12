@@ -8,3 +8,12 @@ using .A3
         end,
     ),
 )
+
+open("result", "w") do io
+    println(io, "λₘₐₓ = ", λₘₐₓ)
+    println(io, "λₘᵢₙ = ", λₘᵢₙ, "\n")
+    println(io, "λ: ")
+    for e in λ
+        println(io, e)
+    end
+end
