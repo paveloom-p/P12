@@ -1,0 +1,339 @@
+\documentclass{article}
+\usepackage[english, russian]{babel}
+\babelfont{rm}{cmunrm.otf}
+
+\usepackage{amsmath}
+\usepackage{relsize}
+\usepackage{mathtools}
+
+\usepackage{geometry}
+\geometry{a4paper, left=1.2in, right=1in}
+
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\fontsize{21}{18}\bfseries}{\thesection}{1em}{}
+
+\usepackage[bookmarks=false]{hyperref}
+\hypersetup{pdfstartview={FitH},
+            colorlinks=true,
+            linkcolor=magenta,
+            pdftitle={Вычислительный практикум: отчет по первому заданию},
+            pdfauthor={Павел Соболев}}
+
+\usepackage{caption}
+\captionsetup[figure]{labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=raggedright}
+\setlength{\captionmargin}{1pt}
+
+\usepackage{float}
+\input{../../shared/julia_font}
+\input{../../shared/julia_listings}
+\lstset{language=Julia, style=julia}
+
+\setlength\parindent{0pt}
+
+\newcommand{\hl}[1]{(\hyperlink{eq:#1}{#1})}
+
+\newcommand{\s}[1]{\iter\hypertarget{skip:\thesecounter.\theeqcounter}{\vspace{#1pt}}}
+\newcommand{\sd}[0]{\iter\hypertarget{skip:\thesecounter.\theeqcounter}{\vspace{-10pt}}}
+
+\newcommand{\hep}[1]{\vspace{#1pt}\hypertarget{eq:\thesecounter.\theeqcounter}{}\vspace{-#1pt}}
+
+\newcommand{\hs}[0]{\sd\hep{18}}
+\newcommand{\hst}[0]{\sd\hep{22}}
+
+\numberwithin{equation}{section}
+\newcounter{secounter}[section]
+\newcounter{eqcounter}
+\newcommand{\iter}[0]{\stepcounter{eqcounter}}
+\newcommand{\resetcounters}[1]{\setcounter{section}{#1}
+\setcounter{subsection}{0}
+\setcounter{equation}{0}
+\setcounter{secounter}{#1}
+\setcounter{eqcounter}{0}}
+
+\begin{document}
+
+\pagenumbering{Alph}
+\thispdfpagelabel{Title}
+\begin{titlepage}
+
+    \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+    \center
+
+    \ \\[6.5cm]
+
+    \textsc{\Large Вычислительный практикум}\\[0.5cm]
+
+    \HRule\\[0.4cm]
+
+    {\huge\bfseries Отчет по первому заданию}\\[0.4cm]
+
+    \HRule\\[0.5cm]
+
+    \large
+    \textit{Автор:} Павел \textsc{Соболев}
+
+    \ \\[0.9cm]
+    \vfill\vfill\vfill
+
+    {\large\today}
+
+    \vfill
+
+\end{titlepage}
+\pagenumbering{arabic}
+
+\subsection*{Часть 1}
+\section*{Теория}
+\resetcounters{1}
+
+\vspace{18pt}
+
+Необходимо решить линейную краевую задачу
+
+\hs
+\begin{gather}
+    y''(x) + p(x) y' + q(x) y(x) = f(x)
+\end{gather}
+
+с граничными условиями
+
+\hs
+\begin{gather}
+    y'(a) = \alpha y(a) + A \\
+    y'(b) = \beta y(b) + B
+\end{gather}
+
+разностным методом с применением метода разностной прогонки.
+
+\subsection{Получение системы линейных уравнений}
+
+Выберем равномерную сетку $ \{x_k\} $:
+
+\hs
+\begin{gather}
+x_k = a + kh, \; k \in \{0, \dots, n\}, \; h = (b-a)/n.
+\end{gather}
+
+Система \hl{1.1} -- \hl{1.3} представима в виде
+
+\hs
+\begin{gather}
+    \left\{
+    \begin{aligned}
+        & -b_0 y_0 + c_0 y_1 && = d_0, \\
+        a_k y_{k-1} & -b_k y_k +c_k y_{k+1} && = d_k \;\; \forall k \in \{1,...,\,n-1\}, \\
+        a_n y_{n-1} & -b_n y_n && = d_n,
+    \end{aligned}
+    \right.
+\end{gather}
+
+где коэффициенты $ a_k, \, b_k, \, c_k, \, d_k $ для $ k\in\{1,...,\,n-1\} $ находятся из разностного соотношения
+
+\hs
+\begin{gather}
+    a_k = 1 - \frac{h}{2} p_k, \quad b_k = 2 - h^2 q_k, \quad c_k = 1 + \frac{h}{2} p_k, \quad d_k = h^2 f_k,
+\end{gather}
+
+а граничные значения $ b_0, \, c_0, \, d_0 $ и $ a_n, \, b_n, \, d_n $ определяются из выбранных разностных соотношений для границ. Используя формулы численного дифференцирования
+
+\hs
+\begin{gather}
+    y'(x) = \frac{y(x+h)-y(x)}{h} + R, \\
+    y'(x) = \frac{y(x)-y(x-h)}{h} + R
+\end{gather}
+
+и исключив главные части остатков R, получаем
+
+\hs
+\begin{gather}
+    y'(a) = \frac{y_1 - y_0}{h} \Big(1 + \frac{h}{2} p_0 \Big) + \frac{h}{2} q_0 y_0 - \frac{h}{2} f_0, \\
+    y'(b) = \frac{y_n - y_{n-1}}{h} \Big(1 - \frac{h}{2} p_n \Big) - \frac{h}{2} q_n y_n + \frac{h}{2} f_n.
+\end{gather}
+
+Сопоставляя первое равенство из системы \hl{1.5} с \hl{1.9}, определяем, что
+
+\hs
+\begin{gather}
+    -b_0 = -\frac{1}{h} \left( 1 + \frac{h}{2} p_0 \right) + \frac{h}{2} q_0 - \alpha, \\
+    c_0 = \frac{1}{h} \left( 1 + \frac{h}{2} p_0 \right), \\
+    d_0 = \frac{h}{2} f_0 + A.
+\end{gather}
+
+Аналогично, сопоставляя последнее равенство из системы \hl{1.5} с \hl{1.10}, получаем, что
+
+\hs
+\begin{gather}
+    a_n = \frac{1}{h} \left( \frac{h}{2} p_n - 1 \right), \\
+    -b_n = -\frac{1}{h} \left( \frac{h}{2} p_n - 1 \right) - \frac{h}{2} q_n - \beta, \\
+    d_n = B - \frac{h}{2} f_n
+\end{gather}
+
+Таким образом, все коэффициенты системы \hl{1.5} определены.
+
+\subsection{Решение системы линейных уравнений}
+
+Метод прогонки осуществляется в два этапа. \par
+
+\vspace{\baselineskip}
+
+Прямой ход: для $ i \in \{2, \dots, n\} $
+
+\hs
+\begin{gather}
+    w_i = \frac{a_i}{b_{i-1}}, \\
+    b_i = b_i - w_i c_{i-1}, \\
+    d_i = d_i - w_i d_{i-1},
+\end{gather}
+
+и обратный ход:
+
+\hs
+\begin{gather}
+    y_n = \frac{d_n}{b_n}, \\
+    y_i = \frac{d_i - c_i y_{i+1}}{b_i} \;\; \forall i \in \{n-1, n-2, \dots, 1\}.
+\end{gather}
+
+\newpage
+
+\subsection*{Часть 2}
+\section*{Реализация}
+\resetcounters{2}
+
+\vspace{18pt}
+
+Алгоритм реализован на языке программирования
+\href{https://julialang.org}{Julia} в виде локального модуля A1
+и расположен в GitHub репозитории \href{https://github.com/paveloom-p/P12}{paveloom-p/P12}
+в папке \href{https://github.com/paveloom-p/P12/tree/master/A1}{A1}.
+Для репродукции результатов следуй инструкциям в файле README.md.
+Далее приводятся только сниппеты кода.
+
+\subsection{Получение системы линейных уравнений}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Вычисление диагоналей и правого вектор-столбца
+]
+# Compute the step
+h = (b - a) / n
+
+# Compute auxiliary variables
+h⁻¹ = 1 / h
+hₕ = h / 2
+ax₀ = h⁻¹ * (hₕ * p(a) + 1)
+axₙ = h⁻¹ * (hₕ * p(b) - 1)
+
+# Compute diagonals and right-hand column
+dl = OffsetArray([[1 - hₕ * p(a + k * h) for k in 1:n-1]; axₙ], 2:n+1)
+d = [
+        -ax₀ + hₕ * q(a) - α;
+        [h^2 * q(a + k * h) - 2 for k in 1:n-1];
+        -axₙ - hₕ * q(b) - β
+    ]
+du = [ax₀; [1 + hₕ * p(a + k * h) for k in 1:n-1]]
+f = [hₕ * f(a) + A; [h^2 * f(a + k * h) for k in 1:n-1]; B - hₕ * f(b)]
+\end{lstlisting}
+\end{figure}
+
+Переменные названы в соответствии с теоретической частью. Конструктор типа \texttt{OffsetArray} позволяет создать вид на массив с произвольной индексацией (здесь: начиная с двух).
+
+\subsection{Решение системы линейных уравнений}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Метод прогонки
+]
+# Perform the forward sweep
+for i in 2:n+1
+    w = dl[i] / d[i-1]
+    d[i] = d[i] - w * du[i-1]
+    f[i] = f[i] - w * f[i-1]
+end
+
+# Prepare the result array
+y = Vector{Float64}(undef, n+1)
+
+# Perform the back substitution
+y[n+1] = f[n+1] / d[n+1]
+for i in n:-1:1
+    y[i] = (f[i] - du[i] * y[i+1]) / d[i]
+end
+\end{lstlisting}
+\end{figure}
+
+\subsection{Пример}
+
+Дана линейная краевая задача
+
+\hs
+\begin{gather}
+    p(x) = \frac{2}{\sqrt{x+1}}, \;
+    q(x) = -2 \sqrt{x^2 + 1}, \;
+    f(x) = \frac{10}{1 + x (1-x)}
+\end{gather}
+
+с граничными условиями
+
+\hs
+\begin{gather}
+y'(0) = 0.5, \; y'(1) = -y(1).
+\end{gather}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Определение и решение проблемы
+]
+include("src/A1.jl")
+using .A1
+
+y = solve(
+    Problem(
+        (x) -> 2 / √(x + 1), # p(x)
+        (x) -> -2 * √(x^2 + 1), # q(x)
+        (x) -> 10 / (1 + x * (1 - x)), # f(x)
+        0, # a
+        0, # α
+        0.5, # A
+        1, # b
+        -1, # β
+        0, # B
+    ),
+    Options(1000), # n
+)
+\end{lstlisting}
+\end{figure}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Результат
+]
+-2.9190387032932716,
+-2.918537123911357,
+-2.918032397389765,
+-2.9175245384392823,
+-2.9170135616958115,
+-2.9164994817207774,
+-2.9159823130015385,
+-2.9154620699517837,
+-2.914938766911938,
+-2.914412418149557,
+...
+-1.7775374532252,
+-1.7757967977418432,
+-1.7740536919877776,
+-1.772308126705395,
+-1.7705600925995977,
+-1.768809580337628,
+-1.7670565805488976,
+-1.7653010838248149,
+-1.7635430807186119,
+-1.7617825617451692
+\end{lstlisting}
+\end{figure}
+
+Смотри полный вывод для данного примера в файле
+\href{https://raw.githubusercontent.com/paveloom-p/P12/master/A1/result}{result}.
+
+\end{document}
