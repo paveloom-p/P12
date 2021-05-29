@@ -13,10 +13,9 @@ function solve(P::Problem, O::Options=DefaultOptions)::Tuple{Float64, Float64, V
     @unpack n, iterₘₐₓ, ϵₚ, ϵⱼ, get_x₀ = O
 
     # Get the matrix
-    # A = Symmetric(Array{Float64}(undef, n, n))
-    A = Matrix{Float64}(undef, n, n)
-    for i = 1:n, j = 1:n
-        A[i,j] = aᵢⱼ(i, j)
+    A = Symmetric(Array{Float64}(undef, n, n))
+    for i = 1:n, j = i:n
+        A.data[i,j] = aᵢⱼ(i, j)
     end
 
     # Get a vector of initial values
@@ -50,7 +49,6 @@ function solve(P::Problem, O::Options=DefaultOptions)::Tuple{Float64, Float64, V
 
     # Use the Jacobi eigenvalue algorithm to find all eigenvalues
 
-    p = Matrix{Float64}(I, n, n)
     λ = Vector{Float64}(undef, n)
 
     for _ in 1:iterₘₐₓ
@@ -87,32 +85,26 @@ function solve(P::Problem, O::Options=DefaultOptions)::Tuple{Float64, Float64, V
         τ = s / (1 + c)
 
         aₜₑₘₚ = A[k,l]
-        A[k,l] = 0
-        A[k,k] -= t * aₜₑₘₚ
-        A[l,l] += t * aₜₑₘₚ
+        A.data[k,l] = 0
+        A.data[k,k] -= t * aₜₑₘₚ
+        A.data[l,l] += t * aₜₑₘₚ
 
         for i in 1:k-1
             aₜₑₘₚ = A[i,k]
-            A[i,k] = aₜₑₘₚ - s * (A[i,l] + τ * aₜₑₘₚ)
-            A[i,l] += s * (aₜₑₘₚ - τ * A[i,l])
+            A.data[i,k] = aₜₑₘₚ - s * (A[i,l] + τ * aₜₑₘₚ)
+            A.data[i,l] += s * (aₜₑₘₚ - τ * A[i,l])
         end
 
         for i in k+1:l-1
             aₜₑₘₚ = A[k,i]
-            A[k,i] = aₜₑₘₚ - s * (A[i,l] + τ * A[k,i])
-            A[i,l] += s * (aₜₑₘₚ - τ * A[i,l])
+            A.data[k,i] = aₜₑₘₚ - s * (A[i,l] + τ * A[k,i])
+            A.data[i,l] += s * (aₜₑₘₚ - τ * A[i,l])
         end
 
         for i in l+1:n
             aₜₑₘₚ = A[k,i]
-            A[k,i] = aₜₑₘₚ - s * (A[l,i] + τ * aₜₑₘₚ)
-            A[l,i] += s * (aₜₑₘₚ - τ * A[l,i])
-        end
-
-        for i in 1:n
-            aₜₑₘₚ = p[i,k]
-            p[i,k] = aₜₑₘₚ - s * (p[i,l] + τ * p[i,k])
-            p[i,l] += s * (aₜₑₘₚ - τ * p[i,l])
+            A.data[k,i] = aₜₑₘₚ - s * (A[l,i] + τ * aₜₑₘₚ)
+            A.data[l,i] += s * (aₜₑₘₚ - τ * A[l,i])
         end
 
     end
