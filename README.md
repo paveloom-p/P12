@@ -1,6 +1,6 @@
 # Description
 
-Every directory shares same logic.
+Every directory shares the same logic.
 
 ## Julia
 
@@ -26,7 +26,7 @@ and examine the docstrings
 ?solve
 ```
 
-# TeX
+## TeX
 
 Use [`tectonic`](https://github.com/tectonic-typesetting/tectonic) to compile the `.tex` files:
 
