@@ -1,0 +1,52 @@
+\documentclass{article}
+\usepackage[english, russian]{babel}
+\babelfont{rm}{cmunrm.otf}
+
+\usepackage{amsmath}
+\usepackage{relsize}
+\usepackage{mathtools}
+
+\usepackage{geometry}
+\geometry{a4paper, left=1.2in, right=1in}
+
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\fontsize{21}{18}\bfseries}{\thesection}{1em}{}
+
+\usepackage[bookmarks=false]{hyperref}
+\hypersetup{pdfstartview={FitH},
+            colorlinks=true,
+            linkcolor=magenta,
+            pdfauthor={Павел Соболев}}
+
+\usepackage{caption}
+\captionsetup[figure]{labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=raggedright}
+\setlength{\captionmargin}{1pt}
+
+\usepackage{float}
+\input{../../shared/julia_font}
+\input{../../shared/julia_listings}
+\lstset{language=Julia, style=julia}
+
+\setlength\parindent{0pt}
+
+\newcommand{\hl}[1]{(\hyperlink{eq:#1}{#1})}
+
+\newcommand{\s}[1]{\iter\hypertarget{skip:\thesecounter.\theeqcounter}{\vspace{#1pt}}}
+\newcommand{\sd}[0]{\iter\hypertarget{skip:\thesecounter.\theeqcounter}{\vspace{-10pt}}}
+
+\newcommand{\hep}[1]{\vspace{#1pt}\hypertarget{eq:\thesecounter.\theeqcounter}{}\vspace{-#1pt}}
+
+\newcommand{\hs}[0]{\sd\hep{18}}
+\newcommand{\hst}[0]{\sd\hep{22}}
+\newcommand{\hsv}[1]{\vspace{-#1pt}\sd\hep{#1}}
+
+\numberwithin{equation}{section}
+\newcounter{secounter}[section]
+\newcounter{eqcounter}
+\newcommand{\iter}[0]{\stepcounter{eqcounter}}
+\newcommand{\resetcounters}[1]{\setcounter{section}{#1}
+\setcounter{subsection}{0}
+\setcounter{equation}{0}
+\setcounter{secounter}{#1}
+\setcounter{eqcounter}{0}}

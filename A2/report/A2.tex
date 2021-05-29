@@ -1,0 +1,193 @@
+\input{../../shared/preambula}
+\hypersetup{pdftitle={Вычислительный практикум: отчет по второму заданию}}
+
+\usepackage{graphicx}
+
+\begin{document}
+
+\pagenumbering{Alph}
+\thispdfpagelabel{Title}
+\begin{titlepage}
+
+    \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+    \center
+
+    \ \\[6.5cm]
+
+    \textsc{\Large Вычислительный практикум}\\[0.5cm]
+
+    \HRule\\[0.4cm]
+
+    {\huge\bfseries Отчет по второму заданию}\\[0.4cm]
+
+    \HRule\\[0.5cm]
+
+    \large
+    \textit{Автор:} Павел \textsc{Соболев}
+
+    \ \\[0.9cm]
+    \vfill\vfill\vfill
+
+    {\large\today}
+
+    \vfill
+
+\end{titlepage}
+\pagenumbering{arabic}
+
+\subsection*{Часть 1}
+\section*{Теория}
+\resetcounters{1}
+
+\vspace{18pt}
+
+Необходимо решить задачу Коши для жесткой системы уравнений
+
+\hs
+\begin{gather}
+     y'(x) = \alpha(A) y(x) + \beta(A) z(x) + p(x, z(x)),
+\end{gather}
+
+\hsv{17.5}
+\begin{gather}
+     z'(x) = \gamma(A) y(x) + \delta(A) z(x) + q(x, y(x), z(x))
+\end{gather}
+
+на промежутке $ [a, b] $ с начальными данными
+
+\hs
+\begin{gather}
+     y(a) = y_0, \; z(a) = z_0.
+\end{gather}
+
+Выберем равномерную сетку $ \{x_k\} $:
+
+\hs
+\begin{gather}
+x_k = a + kh, \; k \in \{0, \dots, n\}, \; h = (b-a)/n.
+\end{gather}
+
+Применим неявный метод Эйлера
+
+\hs
+\begin{gather}
+y_{n+1} = y_n + h f(x_{n+1}, y_{n+1})
+\end{gather}
+
+для уравнений \hl{1.1} и \hl{1.2}. Уравнение \hl{1.1} линейное, что позволяет найти зависимость
+
+\hs
+\begin{gather}
+y_{n+1}(z_{n+1}) = \frac{1}{1 - h \alpha(A)} (y_n + h (\beta(A) z_{n+1} + p(x_{n+1}, z_{n+1})))
+\end{gather}
+
+и подставить её в нелинейное уравнение \hl{1.2}:
+
+\hs
+\begin{gather}
+0 = - z_{n+1} + z_n + h \left( \gamma(A) y_{n+1}(z_{n+1}) + \delta(A) z_{n+1} + q(x_{n+1}, y_{n+1}(z_{n+1}), z_{n+1}) \right)
+\end{gather}
+
+За одну итерацию необходимо найти корень $ z_{n+1} $ нелинейного уравнения \hl{1.7}, а далее определить $ y_{n+1} $ из \hl{1.6}.
+
+\newpage
+
+\subsection*{Часть 2}
+\section*{Реализация}
+\resetcounters{2}
+
+\vspace{18pt}
+
+Алгоритм реализован на языке программирования
+\href{https://julialang.org}{\footnotesize \texttt{Julia}} в виде локального модуля {\footnotesize \texttt{A2}}
+и расположен в GitHub репозитории \href{https://github.com/paveloom-p/P12}{\footnotesize \texttt{paveloom-p/P12}}
+в папке \href{https://github.com/paveloom-p/P12/tree/master/A2}{\footnotesize \texttt{A2}}.
+Для воспроизведения результатов следуй инструкциям в файле {\footnotesize \texttt{README.md}}.
+Далее приводятся только сниппеты кода.
+
+\subsection{Алгоритм}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Решение системы нелинейных уравнений
+]
+# Compute the step
+h = (b - a) / n
+
+# Prepare the result arrays
+y = Vector{Float64}(undef, n+1); z = copy(y)
+
+# Put the boundary values first
+y[1] = y₀
+z[1] = z₀
+
+# Compute the rest
+for i in 1:n
+   x = a + i * h
+   yᵢ₊₁(x, zᵢ₊₁) = (y[i] + h * (β(A) * zᵢ₊₁ + p(x, zᵢ₊₁))) / (1 - h * α(A))
+   z[i+1] = find_zero(
+       (zᵢ₊₁) -> -zᵢ₊₁ + z[i] + h *
+                 (γ(A) * yᵢ₊₁(x, zᵢ₊₁) + δ(A) * zᵢ₊₁ + q(x, zᵢ₊₁)),
+       z[i],
+   )
+   y[i+1] = yᵢ₊₁(x, z[i+1])
+end
+\end{lstlisting}
+\end{figure}
+
+Функция \href{https://juliahub.com/docs/Roots/o0Xsi/1.0.9/reference/#Roots.find_zero}{\footnotesize \texttt{find\_zero}} взята из пакета \href{https://github.com/JuliaMath/Roots.jl}{\footnotesize \texttt{Roots}}.
+
+\subsection{Пример}
+
+Необходимо решить задачу Коши для жесткой системы уравнений
+
+\hs
+\begin{gather}
+     y'(x) = \frac{1}{3} y(x) - A z(x) + \sqrt{\frac{z^2}{2}},
+\end{gather}
+
+\hsv{10}
+\begin{gather}
+     z'(x) = -2 y + A z - \frac{z}{z^2 + 1}
+\end{gather}
+
+на промежутке $ [0, 1] $ с начальными данными
+
+\hs
+\begin{gather}
+     y(0) = -4, \; z(0) = 4.
+\end{gather}
+
+\begin{figure}[H]
+\begin{lstlisting}[
+    caption=Определение и решение проблемы
+]
+y, z = solve(
+    Problem(
+        (A) -> 1 / 3, # α
+        (A) -> -A, # β
+        (A) -> -2, # γ
+        (A) -> A, # γ
+        (x, z) -> sqrt(z^2 / 2), # p
+        (x, z) -> - z / (z^2 + 1), # q
+        0, # a
+        1, # b
+        -5, # A
+        -4, # y₀
+        4, # z₀
+    ),
+    Options(1000), # n
+)
+\end{lstlisting}
+\end{figure}
+
+\begin{figure}[H]
+\captionsetup{justification=centering}
+\setlength{\abovecaptionskip}{-10pt}
+\renewcommand{\figurename}{Рисунок}
+\caption{График решений}
+\hspace{30pt}\includegraphics{../figures/result.pdf}
+\end{figure}
+
+\end{document}
