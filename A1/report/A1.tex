@@ -1,6 +1,8 @@
 \input{../../shared/preambula}
 \hypersetup{pdftitle={Вычислительный практикум: отчет по первому заданию}}
 
+\usepackage{graphicx}
+
 \begin{document}
 
 \pagenumbering{Alph}
@@ -320,5 +322,13 @@ y = solve(
 
 Смотри полный вывод для данного примера в файле
 \href{https://raw.githubusercontent.com/paveloom-p/P12/master/A1/result}{\footnotesize \texttt{result}}.
+
+\begin{figure}[H]
+\captionsetup{justification=centering}
+\setlength{\abovecaptionskip}{-10pt}
+\renewcommand{\figurename}{Рисунок}
+\caption{Графики решений для $ n = 10 $ и $ n = 100 $}
+\hspace{30pt}\includegraphics{../figures/comparison.pdf}
+\end{figure}
 
 \end{document}
