@@ -7,6 +7,18 @@ Every directory shares the same logic.
 From the root of the project (A1, A2, or A3), run
 
 ```bash
+julia --project=.
+```
+
+and instantiate the project:
+
+```julia
+]instantiate
+```
+
+Get back to the shell and run
+
+```bash
 julia --project=. main.jl
 ```
 
